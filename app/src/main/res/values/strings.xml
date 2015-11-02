@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Whose Turn</string>
+    <string name="title_group_detail">Group Detail</string>
+    <string name="group_subtitle">{0} people</string>
+</resources>
