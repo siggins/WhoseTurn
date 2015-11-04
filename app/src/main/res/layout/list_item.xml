@@ -5,14 +5,14 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/group_title"
+        android:id="@+id/title"
         style="@style/AppTheme.ListItemTitle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:text="Group Name" />
 
     <TextView
-        android:id="@+id/group_subtitle"
+        android:id="@+id/subtitle"
         style="@style/AppTheme.ListItemSubtitle"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"

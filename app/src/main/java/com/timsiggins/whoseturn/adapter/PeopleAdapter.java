@@ -1,6 +1,7 @@
 package com.timsiggins.whoseturn.adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,40 +9,40 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.timsiggins.whoseturn.R;
-import com.timsiggins.whoseturn.data.Group;
+import com.timsiggins.whoseturn.data.Person;
 
 import java.text.MessageFormat;
 import java.util.List;
 
 /**
- * Created by tim on 11/1/15.
+ * Created by tim on 11/3/15.
  */
-public class GroupsAdapter extends BaseAdapter {
+public class PeopleAdapter extends BaseAdapter {
     private final LayoutInflater mInflater;
     private final Context context;
-    private List<Group> groups;
+    private List<Person> people;
 
-    public GroupsAdapter(Context context, List<Group> groups) {
+    public PeopleAdapter(Context context, List<Person> people) {
         this.context = context;
         mInflater = LayoutInflater.from(this.context);
-        this.groups = groups;
+        this.people = people;
     }
 
     @Override
     public int getCount() {
-        return groups.size();
+        return people.size();
     }
 
     @Override
     public Object getItem(int i) {
-        return groups.get(i);
+        return people.get(i);
     }
 
     @Override
     public long getItemId(int i) {
-        final Group group = groups.get(i);
-        if (group != null) {
-            return group.getId();
+        final Person person = people.get(i);
+        if (person != null) {
+            return person.getId();
         } else {
             return 0;
         }
@@ -69,20 +70,12 @@ public class GroupsAdapter extends BaseAdapter {
             holder = (ViewHolder) convertView.getTag();
         }
         // Bind the data efficiently with the holder.
-        final Group group = groups.get(position);
-        holder.title.setText(group.getName());
-        if (group.size() == 0) {
-            holder.subtitle.setText(R.string.group_size0);
-        } else if (group.size() == 1){
-            holder.subtitle.setText(group.getPerson(0).getName());
-        } else if (group.size() == 2){
-            final String name = group.getPerson(0).getName();
-            final String name1 = group.getPerson(1).getName();
-            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.group_size2), name, name1));
-        } else if (group.size() == 3){
-            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.groups_size3), group.getPerson(0).getName(), group.getPerson(1).getName()));
-        } else if (group.size() > 3){
-            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.groups_sizelarge), group.getPerson(0).getName(), group.getPerson(1).getName(), group.size() - 2));
+        final Person person = people.get(position);
+        if (person != null) {
+            holder.title.setText(person.getName());
+            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.last_paid), person.getLastPaid()));
+        } else {
+            Log.d("PeopleAdapter", "no person in list at position "+position);
         }
         return convertView;
     }
@@ -91,5 +84,4 @@ public class GroupsAdapter extends BaseAdapter {
         TextView title;
         TextView subtitle;
     }
-
 }

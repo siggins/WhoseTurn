@@ -1,5 +1,7 @@
 package com.timsiggins.whoseturn;
 
+import android.os.Parcelable;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +10,11 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.view.MenuItem;
+
+import com.timsiggins.whoseturn.data.Group;
+import com.timsiggins.whoseturn.database.PeopleDatabase;
+
+import java.text.MessageFormat;
 
 /**
  * An activity representing a single Group detail screen. This
@@ -18,7 +25,10 @@ import android.view.MenuItem;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link GroupDetailFragment}.
  */
-public class GroupDetailActivity extends AppCompatActivity {
+public class GroupDetailActivity extends AppCompatActivity implements EditTextDialog.EditTextDialogListener{
+
+    private PeopleDatabase peopleDatabase;
+    private Group group;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,14 +37,10 @@ public class GroupDetailActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
         setSupportActionBar(toolbar);
 
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+
 
         // Show the Up button in the action bar.
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -48,17 +54,28 @@ public class GroupDetailActivity extends AppCompatActivity {
         //
         // http://developer.android.com/guide/components/fragments.html
         //
+
         if (savedInstanceState == null) {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(GroupDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(GroupDetailFragment.ARG_ITEM_ID));
+            group = getIntent().getParcelableExtra(GroupDetailFragment.ARG_GROUP);
+            arguments.putParcelable(GroupDetailFragment.ARG_GROUP, group);
             GroupDetailFragment fragment = new GroupDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.group_detail_container, fragment)
                     .commit();
+
+
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    FragmentManager fm = getSupportFragmentManager();
+                    EditTextDialog alertDialog = EditTextDialog.newInstance("Add a new person", MessageFormat.format("Please enter a name to add to {0}", group.getName()));
+                    alertDialog.show(fm, "fragment_alert");
+                }
+            });
         }
     }
 
@@ -76,5 +93,13 @@ public class GroupDetailActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onFinishEditDialog(String inputText) {
+        peopleDatabase = new PeopleDatabase(this);
+        peopleDatabase.open();
+        peopleDatabase.addPersonToGroup(group.getId(),inputText);
+        peopleDatabase.close();
     }
 }

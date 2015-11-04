@@ -2,4 +2,9 @@
     <string name="app_name">Whose Turn</string>
     <string name="title_group_detail">Group Detail</string>
     <string name="group_subtitle">{0} people</string>
+    <string name="group_size0">Empty group</string>
+    <string name="group_size2">{0} and {1}</string>
+    <string name="groups_size3">{0}, {1}, and 1 other</string>
+    <string name="groups_sizelarge">{0}, {1}, and {2} others</string>
+    <string name="last_paid">Last paid on {0}</string>
 </resources>

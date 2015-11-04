@@ -1,15 +1,15 @@
 package com.timsiggins.whoseturn;
 
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.view.View;
 
-import com.timsiggins.whoseturn.database.DatabaseHelper;
+import com.timsiggins.whoseturn.data.Group;
+import com.timsiggins.whoseturn.database.GroupsDatabase;
 
 
 /**
@@ -29,7 +29,7 @@ import com.timsiggins.whoseturn.database.DatabaseHelper;
  * to listen for item selections.
  */
 public class GroupListActivity extends AppCompatActivity
-        implements GroupListFragment.Callbacks {
+        implements GroupListFragment.Callbacks, EditTextDialog.EditTextDialogListener {
 
     /**
      * Whether or not the activity is in two-pane mode, i.e. running on a tablet
@@ -46,14 +46,7 @@ public class GroupListActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         toolbar.setTitle(getTitle());
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
 
         if (findViewById(R.id.group_detail_container) != null) {
             // The detail container view will be present only in the
@@ -69,21 +62,32 @@ public class GroupListActivity extends AppCompatActivity
                     .setActivateOnItemClick(true);
         }
 
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fm = getSupportFragmentManager();
+                EditTextDialog alertDialog = EditTextDialog.newInstance("Create a New Group", "Please enter the group name");
+                alertDialog.show(fm, "fragment_alert");
+            }
+        });
+
         // TODO: If exposing deep links into your app, handle intents here.
     }
 
     /**
      * Callback method from {@link GroupListFragment.Callbacks}
      * indicating that the item with the given ID was selected.
+     * @param group
      */
     @Override
-    public void onItemSelected(String id) {
+    public void onItemSelected(Group group) {
         if (mTwoPane) {
             // In two-pane mode, show the detail view in this activity by
             // adding or replacing the detail fragment using a
             // fragment transaction.
             Bundle arguments = new Bundle();
-            arguments.putString(GroupDetailFragment.ARG_ITEM_ID, id);
+            arguments.putParcelable(GroupDetailFragment.ARG_GROUP, group);
             GroupDetailFragment fragment = new GroupDetailFragment();
             fragment.setArguments(arguments);
             getSupportFragmentManager().beginTransaction()
@@ -94,8 +98,19 @@ public class GroupListActivity extends AppCompatActivity
             // In single-pane mode, simply start the detail activity
             // for the selected item ID.
             Intent detailIntent = new Intent(this, GroupDetailActivity.class);
-            detailIntent.putExtra(GroupDetailFragment.ARG_ITEM_ID, id);
+            detailIntent.putExtra(GroupDetailFragment.ARG_GROUP, group);
             startActivity(detailIntent);
         }
+    }
+
+    @Override
+    public void onFinishEditDialog(String inputText) {
+//        Snackbar.make(null, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show();
+        final GroupsDatabase groupsDatabase = new GroupsDatabase(this);
+        groupsDatabase.open();
+        Group g = groupsDatabase.addGroup(inputText);
+        groupsDatabase.close();
+        onItemSelected(g);
     }
 }

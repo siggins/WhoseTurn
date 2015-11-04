@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.timsiggins.whoseturn.dummy.DummyContent;
+import com.timsiggins.whoseturn.adapter.GroupsAdapter;
+import com.timsiggins.whoseturn.data.Group;
+import com.timsiggins.whoseturn.database.GroupsDatabase;
+
+import java.util.List;
 
 /**
  * A list fragment representing a list of Groups. This fragment
@@ -36,6 +39,7 @@ public class GroupListFragment extends ListFragment {
      * The current activated item position. Only used on tablets.
      */
     private int mActivatedPosition = ListView.INVALID_POSITION;
+    private List<Group> allGroups;
 
     /**
      * A callback interface that all activities containing this fragment must
@@ -45,8 +49,9 @@ public class GroupListFragment extends ListFragment {
     public interface Callbacks {
         /**
          * Callback for when an item has been selected.
+         * @param id
          */
-        public void onItemSelected(String id);
+        public void onItemSelected(Group id);
     }
 
     /**
@@ -55,7 +60,7 @@ public class GroupListFragment extends ListFragment {
      */
     private static Callbacks sDummyCallbacks = new Callbacks() {
         @Override
-        public void onItemSelected(String id) {
+        public void onItemSelected(Group id) {
         }
     };
 
@@ -69,13 +74,11 @@ public class GroupListFragment extends ListFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // TODO: replace with a real list adapter.
-        setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(
-                getActivity(),
-                android.R.layout.simple_list_item_activated_1,
-                android.R.id.text1,
-                DummyContent.ITEMS));
+        GroupsDatabase groups = new GroupsDatabase(getActivity());
+        groups.open();
+        allGroups = groups.getAllGroups(true);
+        groups.close();
+        setListAdapter(new GroupsAdapter(getActivity(), allGroups));
     }
 
     @Override
@@ -115,7 +118,7 @@ public class GroupListFragment extends ListFragment {
 
         // Notify the active callbacks interface (the activity, if the
         // fragment is attached to one) that an item has been selected.
-        mCallbacks.onItemSelected(DummyContent.ITEMS.get(position).id);
+        mCallbacks.onItemSelected(allGroups.get(position));
     }
 
     @Override
@@ -145,7 +148,6 @@ public class GroupListFragment extends ListFragment {
         } else {
             getListView().setItemChecked(position, true);
         }
-
         mActivatedPosition = position;
     }
 }
