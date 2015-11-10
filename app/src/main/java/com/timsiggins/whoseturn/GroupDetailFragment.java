@@ -11,6 +11,8 @@ import android.graphics.drawable.Drawable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -54,6 +56,7 @@ public class GroupDetailFragment extends Fragment {
      */
     private Group mGroup;
     private PeopleDatabase peopleDatabase;
+    private PeopleAdapter adapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -72,14 +75,15 @@ public class GroupDetailFragment extends Fragment {
             // to load content from a content provider.
             mGroup = getArguments().getParcelable(ARG_GROUP);
             if (mGroup != null) {
+                Log.d("GroupDetailFragment", "mGroup old size is " + mGroup.size());
                 if (mGroup.size() == 0) {
                     //double check to see if anyone is in the group
                     peopleDatabase = new PeopleDatabase(getActivity());
                     peopleDatabase.open();
                     mGroup.addPeople(peopleDatabase.getPeopleForGroup(mGroup.getId()));
                     peopleDatabase.close();
+                    Log.d("GroupDetailFragment","mGroup new size is "+mGroup.size());
                 }
-
                 Activity activity = this.getActivity();
 
                 final String picPath = mGroup.getPicture();
@@ -126,8 +130,21 @@ public class GroupDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_group_detail, container, false);
 
         if (mGroup != null) {
-            ListView personList = (ListView) rootView.findViewById(R.id.people_list);
-            personList.setAdapter(new PeopleAdapter(getActivity(), mGroup.getPeople()));
+            RecyclerView personList = (RecyclerView) rootView.findViewById(R.id.people_list);
+            personList.setLayoutManager(new LinearLayoutManager(getActivity()));
+            adapter = new PeopleAdapter(getActivity(), mGroup.getPeople());
+            Log.d("GroupDetailFragment","There are "+adapter.getItemCount()+" items in the adapter");
+            adapter.notifyDataSetChanged();
+            personList.setAdapter(adapter);
+
+            personList.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    //todo - make a person pay
+                    return false;
+                }
+            });
 //            ((TextView) rootView.findViewById(R.id.group_detail)).setText(mGroup.getLastUsed().toString());
         }
 

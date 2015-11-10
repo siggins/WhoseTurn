@@ -1,6 +1,7 @@
 package com.timsiggins.whoseturn.adapter;
 
 import android.content.Context;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,7 +18,7 @@ import java.util.List;
 /**
  * Created by tim on 11/3/15.
  */
-public class PeopleAdapter extends BaseAdapter {
+public class PeopleAdapter extends RecyclerView.Adapter<PeopleAdapter.ViewHolder> {
     private final LayoutInflater mInflater;
     private final Context context;
     private List<Person> people;
@@ -28,15 +29,29 @@ public class PeopleAdapter extends BaseAdapter {
         this.people = people;
     }
 
+
     @Override
-    public int getCount() {
-        return people.size();
+    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        // create a new view
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.list_item, parent, false);
+        // set the view's size, margins, paddings and layout parameters
+        ViewHolder vh = new ViewHolder(v);
+        return vh;
     }
 
     @Override
-    public Object getItem(int i) {
-        return people.get(i);
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        if (position < people.size()) {
+            Person person = people.get(position);
+            if (person != null) {
+                holder.title.setText(person.getName());
+                holder.subtitle.setText(MessageFormat.format(context.getString(R.string.last_paid), person.getLastPaid()));
+
+            }
+        }
     }
+
 
     @Override
     public long getItemId(int i) {
@@ -49,39 +64,23 @@ public class PeopleAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup viewGroup) {
-        // A ViewHolder keeps references to children views to avoid unneccessary calls
-        // to findViewById() on each row.
-        ViewHolder holder;
-        // When convertView is not null, we can reuse it directly, there is no need
-        // to reinflate it. We only inflate a new View when the convertView supplied
-        // by ListView is null.
-        if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.list_item, null);
-            // Creates a ViewHolder and store references to the two children views
-            // we want to bind data to.
-            holder = new ViewHolder();
-            holder.title = (TextView) convertView.findViewById(R.id.title);
-            holder.subtitle = (TextView) convertView.findViewById(R.id.subtitle);
-            convertView.setTag(holder);
-        } else {
-            // Get the ViewHolder back to get fast access to the TextView
-            // and the ImageView.
-            holder = (ViewHolder) convertView.getTag();
-        }
-        // Bind the data efficiently with the holder.
-        final Person person = people.get(position);
-        if (person != null) {
-            holder.title.setText(person.getName());
-            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.last_paid), person.getLastPaid()));
-        } else {
-            Log.d("PeopleAdapter", "no person in list at position "+position);
-        }
-        return convertView;
+    public int getItemCount() {
+        return people.size();
     }
 
-    static class ViewHolder {
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView title;
         TextView subtitle;
+        public View itemView;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            this.itemView = itemView;
+            title = (TextView) itemView.findViewById(R.id.title);
+            subtitle = (TextView) itemView.findViewById(R.id.subtitle);
+        }
     }
+
+
 }

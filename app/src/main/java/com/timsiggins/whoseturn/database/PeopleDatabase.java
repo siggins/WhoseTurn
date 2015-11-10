@@ -89,11 +89,33 @@ public class PeopleDatabase  {
         contentValues.put(COL_LAST, new Date().getTime());
         contentValues.put(COL_AHEAD, 0);
 
-        long id = database.insert(TBLNAME,null,contentValues);
+        int id = (int) database.insert(TBLNAME,null,contentValues);
         return getPerson(id);
     }
 
-    private Person getPerson(long id) {
+    public Person getNextPayer(int groupId) {
+        final List<Person> peopleForGroup = getPeopleForGroup(groupId);
+        Person payer = peopleForGroup.get(0);
+        for(Person p: peopleForGroup){
+            if (p.getLastPaid().before(payer.getLastPaid())){
+                payer = p;
+            }
+        }
+        //todo -- take care of ahead
+        return payer;
+    }
+
+    public void makePersonPay(int personId,  int groupId){
+        Person p = getNextPayer(groupId);
+        final ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_LAST, new Date().getTime());
+        if (p.getId() == personId){
+            contentValues.put(COL_AHEAD,p.getAhead()+1);
+        }
+        database.update(TBLNAME,contentValues,COL_ID+" = ?",new String[]{personId + ""});
+    }
+
+    public Person getPerson(int id) {
         Person person = null;
         Cursor cursor = database.query(TBLNAME,ALL_COLS,COL_ID+"=?",new String[]{id+""},null,null,null);
         cursor.moveToFirst();
@@ -103,4 +125,6 @@ public class PeopleDatabase  {
         cursor.close();
         return person;
     }
+
+
 }
