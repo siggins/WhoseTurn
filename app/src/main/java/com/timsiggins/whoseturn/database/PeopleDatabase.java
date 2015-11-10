@@ -77,7 +77,7 @@ public class PeopleDatabase  {
     private Person extractPerson(Cursor cursor) {
         Person p = new Person(cursor.getInt(0),cursor.getString(2));
         p.setAhead(cursor.getInt(4));
-        p.setLastpaid(new Date(cursor.getLong(3) * 1000));
+        p.setLastpaid(new Date(cursor.getLong(3)));
         return p;
     }
 

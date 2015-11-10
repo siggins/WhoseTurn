@@ -70,7 +70,7 @@ public class GroupsDatabase {
     }
     private Group extractGroup(Cursor cursor, boolean withPeople){
         Group g = new Group(cursor.getInt(0),cursor.getString(1));
-        g.setLastUsed(new Date(cursor.getLong(2) * 1000));
+        g.setLastUsed(new Date(cursor.getLong(2)));
         g.setPicture(cursor.getString(3));
         Log.d("GroupsDatabase", "setting pic to " + g.getPicture());
         if (withPeople){

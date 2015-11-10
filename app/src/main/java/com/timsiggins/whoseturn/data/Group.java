@@ -117,4 +117,8 @@ public class Group extends StoredObject implements Iterable<Person>, Parcelable{
     };
 
 
+    public void setPeople(List<Person> peopleForGroup) {
+        people.clear();
+        people.addAll(peopleForGroup);
+    }
 }

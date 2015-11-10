@@ -43,7 +43,7 @@ import java.util.Arrays;
  * in two-pane mode (on tablets) or a {@link GroupDetailActivity}
  * on handsets.
  */
-public class GroupDetailFragment extends Fragment {
+public class GroupDetailFragment extends Fragment implements RecyclerItemClickListener.OnItemClickListener {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -133,18 +133,12 @@ public class GroupDetailFragment extends Fragment {
             RecyclerView personList = (RecyclerView) rootView.findViewById(R.id.people_list);
             personList.setLayoutManager(new LinearLayoutManager(getActivity()));
             adapter = new PeopleAdapter(getActivity(), mGroup.getPeople());
-            Log.d("GroupDetailFragment","There are "+adapter.getItemCount()+" items in the adapter");
+            Log.d("GroupDetailFragment", "There are " + adapter.getItemCount() + " items in the adapter");
             adapter.notifyDataSetChanged();
             personList.setAdapter(adapter);
+            personList.addOnItemTouchListener(new RecyclerItemClickListener(getContext(), this));
 
-            personList.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View view) {
 
-                    //todo - make a person pay
-                    return false;
-                }
-            });
 //            ((TextView) rootView.findViewById(R.id.group_detail)).setText(mGroup.getLastUsed().toString());
         }
 
@@ -222,5 +216,21 @@ public class GroupDetailFragment extends Fragment {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public void onItemClick(View childView, int position) {
+        //on click action
+    }
+
+    @Override
+    public void onItemLongPress(View childView, int position) {
+        PeopleDatabase database = new PeopleDatabase(getContext());
+        database.open();
+        int id = (int) adapter.getItemId(position);
+        database.makePersonPay(id,mGroup.getId());
+        mGroup.setPeople(database.getPeopleForGroup(mGroup.getId()));
+        database.close();
+        adapter.notifyDataSetChanged();
     }
 }
