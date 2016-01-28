@@ -1,20 +1,31 @@
 package com.timsiggins.whoseturn;
 
-import android.os.Parcelable;
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AppCompatActivity;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
+import android.util.Log;
+import android.view.Display;
+import android.view.Menu;
 import android.view.MenuItem;
 
 import com.timsiggins.whoseturn.data.Group;
+import com.timsiggins.whoseturn.database.GroupsDatabase;
 import com.timsiggins.whoseturn.database.PeopleDatabase;
 
-import java.text.MessageFormat;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * An activity representing a single Group detail screen. This
@@ -25,7 +36,10 @@ import java.text.MessageFormat;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link GroupDetailFragment}.
  */
-public class GroupDetailActivity extends AppCompatActivity implements EditTextDialog.EditTextDialogListener{
+public class GroupDetailActivity extends AppCompatActivity implements EditTextDialog.EditTextDialogListener {
+
+    private static final int PICK_IMAGE = 1;
+
 
     private PeopleDatabase peopleDatabase;
     private Group group;
@@ -38,12 +52,12 @@ public class GroupDetailActivity extends AppCompatActivity implements EditTextDi
         setSupportActionBar(toolbar);
 
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-
-
         // Show the Up button in the action bar.
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar ab = getSupportActionBar();
+        if (ab != null) {
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
+
 
         // savedInstanceState is non-null when there is fragment state
         // saved from previous configurations of this activity
@@ -66,40 +80,123 @@ public class GroupDetailActivity extends AppCompatActivity implements EditTextDi
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.group_detail_container, fragment)
                     .commit();
-
-
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    FragmentManager fm = getSupportFragmentManager();
-                    EditTextDialog alertDialog = EditTextDialog.newInstance("Add a new person", MessageFormat.format("Please enter a name to add to {0}", group.getName()));
-                    alertDialog.show(fm, "fragment_alert");
-                }
-            });
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.activity_menu, menu);
+        //return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
-            navigateUpTo(new Intent(this, GroupListActivity.class));
-            return true;
+        switch (id) {
+            case android.R.id.home:
+                navigateUpTo(new Intent(this, GroupListActivity.class));
+                return true;
+            case R.id.delete:
+                //todo - delete group
+                return true;
+            case R.id.change_pic:
+                //show pic chooser and set pic
+                Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                getIntent.setType("image/*");
+
+                Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                pickIntent.setType("image/*");
+
+                Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
+                chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
+
+                startActivityForResult(pickIntent, PICK_IMAGE);
+                return true;
+
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_IMAGE) {
+            if (resultCode == Activity.RESULT_OK) {
+                try {
+                    InputStream inputStream = getContentResolver().openInputStream(data.getData());
+
+                    //get phone display width to resize pic to store a smaller image
+                    Display display = getWindowManager().getDefaultDisplay();
+                    Point point = new Point();
+                    display.getSize(point);
+                    int maxWidth = Math.max(point.x, point.y);//biggest in either direction
+                    int maxHeight = maxWidth * 3 / 5;
+                    final BitmapDrawable drawable = decodeFile(inputStream, maxWidth, maxHeight);
+
+                    if (drawable != null) {
+                        final String filename = "pic-" + group.getId() + ".jpg";
+                        final FileOutputStream fos = openFileOutput(filename, Context.MODE_PRIVATE);
+                        drawable.getBitmap().compress(Bitmap.CompressFormat.JPEG, 90, fos);
+                        fos.close();
+
+                        GroupsDatabase groupsDatabase = new GroupsDatabase(this);
+                        groupsDatabase.open();
+                        groupsDatabase.addPicToGroup(group.getId(), filename);
+                        groupsDatabase.close();
+
+                    }
+
+                } catch (FileNotFoundException e) {
+                    Log.e("GroupDetailFragment", "Could not open input stream for saving picture", e);
+                } catch (IOException e) {
+                    Log.e("GroupDetailFragment", "IO Exception");
+                }
+
+
+            }
+        }
+    }
+
+
+    private BitmapDrawable decodeFile(InputStream in, int maxWidth, int maxHeight) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = in.read(buffer)) > -1) {
+                baos.write(buffer, 0, len);
+            }
+            baos.flush();
+            InputStream is1 = new ByteArrayInputStream(baos.toByteArray());
+            InputStream is2 = new ByteArrayInputStream(baos.toByteArray());
+
+            BitmapFactory.Options o = new BitmapFactory.Options();
+            o.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(is1, null, o);
+
+
+            System.out.println("h:" + o.outHeight + " w:" + o.outWidth);
+            int scale = 1;
+            if (o.outHeight > maxHeight || o.outWidth > maxWidth) {
+
+                scale = (int) Math.pow(2,
+                        (int) Math.round(Math.log((double) Math.max(o.outHeight / maxHeight, o.outWidth / maxWidth)) / Math.log(0.5)));
+            }
+
+            BitmapFactory.Options o2 = new BitmapFactory.Options();
+            o2.inSampleSize = scale;
+            return new BitmapDrawable(getResources(), BitmapFactory.decodeStream(is2, null, o2));
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
     public void onFinishEditDialog(String inputText) {
         peopleDatabase = new PeopleDatabase(this);
         peopleDatabase.open();
-        peopleDatabase.addPersonToGroup(group.getId(),inputText);
+        peopleDatabase.addPersonToGroup(group.getId(), inputText);
         peopleDatabase.close();
     }
 }

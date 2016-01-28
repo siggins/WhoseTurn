@@ -1,41 +1,28 @@
 package com.timsiggins.whoseturn;
 
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.design.widget.CollapsingToolbarLayout;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.ListView;
 
 import com.timsiggins.whoseturn.adapter.PeopleAdapter;
 import com.timsiggins.whoseturn.data.Group;
-import com.timsiggins.whoseturn.database.GroupsDatabase;
 import com.timsiggins.whoseturn.database.PeopleDatabase;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 /**
  * A fragment representing a single Group detail screen.
@@ -49,7 +36,6 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
      * represents.
      */
     public static final String ARG_GROUP = "item_id";
-    private static final int PICK_IMAGE = 1;
 
     /**
      * The dummy content this fragment is presenting.
@@ -106,17 +92,7 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
                     appBarLayout.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            //show pic chooser and set pic
-                            Intent getIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                            getIntent.setType("image/*");
 
-                            Intent pickIntent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                            pickIntent.setType("image/*");
-
-                            Intent chooserIntent = Intent.createChooser(getIntent, "Select Image");
-                            chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, new Intent[]{pickIntent});
-
-                            startActivityForResult(pickIntent, PICK_IMAGE);
                         }
                     });
                 }
@@ -145,44 +121,6 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
         return rootView;
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PICK_IMAGE) {
-            if (resultCode == Activity.RESULT_OK) {
-                try {
-                    InputStream inputStream = getActivity().getContentResolver().openInputStream(data.getData());
-
-                    //get phone display width to resize pic to store a smaller image
-                    Display display = getActivity().getWindowManager().getDefaultDisplay();
-                    Point point = new Point();
-                    display.getSize(point);
-                    int maxWidth = Math.max(point.x, point.y);//biggest in either direction
-                    int maxHeight = maxWidth * 3 / 5;
-                    final BitmapDrawable drawable = decodeFile(inputStream, maxWidth, maxHeight);
-
-                    if (drawable != null) {
-                        final String filename = "pic-" + mGroup.getId() + ".jpg";
-                        final FileOutputStream fos = getActivity().openFileOutput(filename, Context.MODE_PRIVATE);
-                        drawable.getBitmap().compress(Bitmap.CompressFormat.JPEG,90,fos);
-                        fos.close();
-
-                        GroupsDatabase groupsDatabase = new GroupsDatabase(getActivity());
-                        groupsDatabase.open();
-                        groupsDatabase.addPicToGroup(mGroup.getId(), filename);
-                        groupsDatabase.close();
-
-                    }
-
-                } catch (FileNotFoundException e) {
-                    Log.e("GroupDetailFragment", "Could not open input stream for saving picture", e);
-                } catch (IOException e) {
-                    Log.e("GroupDetailFragment", "IO Exception");
-                }
-
-
-            }
-        }
-    }
 
 
     private BitmapDrawable decodeFile(InputStream in, int maxWidth, int maxHeight) {

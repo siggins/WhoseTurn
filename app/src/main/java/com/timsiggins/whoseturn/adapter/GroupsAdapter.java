@@ -49,22 +49,22 @@ public class GroupsAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup viewGroup) {
-        // A ViewHolder keeps references to children views to avoid unneccessary calls
+        // A ViewHolderPerson keeps references to children views to avoid unneccessary calls
         // to findViewById() on each row.
         ViewHolder holder;
         // When convertView is not null, we can reuse it directly, there is no need
         // to reinflate it. We only inflate a new View when the convertView supplied
         // by ListView is null.
         if (convertView == null) {
-            convertView = mInflater.inflate(R.layout.list_item, null);
-            // Creates a ViewHolder and store references to the two children views
+            convertView = mInflater.inflate(R.layout.group_list_item, null);
+            // Creates a ViewHolderPerson and store references to the two children views
             // we want to bind data to.
             holder = new ViewHolder();
             holder.title = (TextView) convertView.findViewById(R.id.title);
             holder.subtitle = (TextView) convertView.findViewById(R.id.subtitle);
             convertView.setTag(holder);
         } else {
-            // Get the ViewHolder back to get fast access to the TextView
+            // Get the ViewHolderPerson back to get fast access to the TextView
             // and the ImageView.
             holder = (ViewHolder) convertView.getTag();
         }
