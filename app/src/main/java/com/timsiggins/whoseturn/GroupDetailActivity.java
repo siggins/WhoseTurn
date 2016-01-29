@@ -36,7 +36,7 @@ import java.io.InputStream;
  * This activity is mostly just a 'shell' activity containing nothing
  * more than a {@link GroupDetailFragment}.
  */
-public class GroupDetailActivity extends AppCompatActivity implements EditTextDialog.EditTextDialogListener {
+public class GroupDetailActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE = 1;
 
@@ -100,6 +100,11 @@ public class GroupDetailActivity extends AppCompatActivity implements EditTextDi
                 return true;
             case R.id.delete:
                 //todo - delete group
+                GroupsDatabase groupsDatabase = new GroupsDatabase(this);
+                groupsDatabase.open();
+                groupsDatabase.deleteGroup(group.getId());
+                groupsDatabase.close();
+                finish();
                 return true;
             case R.id.change_pic:
                 //show pic chooser and set pic
@@ -192,11 +197,4 @@ public class GroupDetailActivity extends AppCompatActivity implements EditTextDi
         }
     }
 
-    @Override
-    public void onFinishEditDialog(String inputText) {
-        peopleDatabase = new PeopleDatabase(this);
-        peopleDatabase.open();
-        peopleDatabase.addPersonToGroup(group.getId(), inputText);
-        peopleDatabase.close();
-    }
 }

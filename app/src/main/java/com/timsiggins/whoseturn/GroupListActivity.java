@@ -47,7 +47,6 @@ public class GroupListActivity extends AppCompatActivity
         toolbar.setTitle(getTitle());
 
 
-
         if (findViewById(R.id.group_detail_container) != null) {
             // The detail container view will be present only in the
             // large-screen layouts (res/values-large and
@@ -67,7 +66,7 @@ public class GroupListActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 FragmentManager fm = getSupportFragmentManager();
-                EditTextDialog alertDialog = EditTextDialog.newInstance("Create a New Group", "Please enter the group name");
+                EditTextDialog alertDialog = EditTextDialog.newInstance("Create a New Group", "Please enter the group name", GroupListActivity.this);
                 alertDialog.show(fm, "fragment_alert");
             }
         });
@@ -78,6 +77,7 @@ public class GroupListActivity extends AppCompatActivity
     /**
      * Callback method from {@link GroupListFragment.Callbacks}
      * indicating that the item with the given ID was selected.
+     *
      * @param group
      */
     @Override

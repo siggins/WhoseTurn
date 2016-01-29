@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -23,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
 
 /**
  * A fragment representing a single Group detail screen.
@@ -30,7 +32,8 @@ import java.io.InputStream;
  * in two-pane mode (on tablets) or a {@link GroupDetailActivity}
  * on handsets.
  */
-public class GroupDetailFragment extends Fragment implements RecyclerItemClickListener.OnItemClickListener {
+public class GroupDetailFragment extends Fragment implements
+        PeopleAdapter.PeopleAdapterListener, EditTextDialog.EditTextDialogListener {
     /**
      * The fragment argument representing the item ID that this fragment
      * represents.
@@ -41,7 +44,6 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
      * The dummy content this fragment is presenting.
      */
     private Group mGroup;
-    private PeopleDatabase peopleDatabase;
     private PeopleAdapter adapter;
 
     /**
@@ -64,23 +66,23 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
                 Log.d("GroupDetailFragment", "mGroup old size is " + mGroup.size());
                 if (mGroup.size() == 0) {
                     //double check to see if anyone is in the group
-                    peopleDatabase = new PeopleDatabase(getActivity());
-                    peopleDatabase.open();
-                    mGroup.addPeople(peopleDatabase.getPeopleForGroup(mGroup.getId()));
-                    peopleDatabase.close();
-                    Log.d("GroupDetailFragment","mGroup new size is "+mGroup.size());
+                    PeopleDatabase db = new PeopleDatabase(getActivity());
+                    db.open();
+                    mGroup.addPeople(db.getPeopleForGroup(mGroup.getId()));
+                    db.close();
+                    Log.d("GroupDetailFragment", "mGroup new size is " + mGroup.size());
                 }
                 Activity activity = this.getActivity();
 
                 final String picPath = mGroup.getPicture();
-                Log.d("GroupDetailFragment","picPath is "+picPath);
+                Log.d("GroupDetailFragment", "picPath is " + picPath);
 
                 if (picPath != null && !picPath.isEmpty()) {
                     ImageView img = (ImageView) activity.findViewById(R.id.toolbar_image);
                     try {
                         Drawable pic = Drawable.createFromStream(activity.openFileInput(picPath), null);
                         img.setImageDrawable(pic);
-                        Log.d("GroupDetailFragment","set background");
+                        Log.d("GroupDetailFragment", "set background");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -108,11 +110,10 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
         if (mGroup != null) {
             RecyclerView personList = (RecyclerView) rootView.findViewById(R.id.people_list);
             personList.setLayoutManager(new LinearLayoutManager(getActivity()));
-            adapter = new PeopleAdapter(getActivity(), mGroup.getPeople());
+            adapter = new PeopleAdapter(getActivity(), mGroup.getPeople(), this);
             Log.d("GroupDetailFragment", "There are " + adapter.getItemCount() + " items in the adapter");
             adapter.notifyDataSetChanged();
             personList.setAdapter(adapter);
-            personList.addOnItemTouchListener(new RecyclerItemClickListener(getContext(), this));
 
 
 //            ((TextView) rootView.findViewById(R.id.group_detail)).setText(mGroup.getLastUsed().toString());
@@ -120,7 +121,6 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
 
         return rootView;
     }
-
 
 
     private BitmapDrawable decodeFile(InputStream in, int maxWidth, int maxHeight) {
@@ -150,25 +150,39 @@ public class GroupDetailFragment extends Fragment implements RecyclerItemClickLi
 
             BitmapFactory.Options o2 = new BitmapFactory.Options();
             o2.inSampleSize = scale;
-            return new BitmapDrawable(getResources(),BitmapFactory.decodeStream(is2, null, o2));
+            return new BitmapDrawable(getResources(), BitmapFactory.decodeStream(is2, null, o2));
         } catch (Exception e) {
             return null;
         }
     }
 
-    @Override
-    public void onItemClick(View childView, int position) {
-        //on click action
-    }
 
     @Override
-    public void onItemLongPress(View childView, int position) {
+    public void onPayClicked(int position) {
         PeopleDatabase database = new PeopleDatabase(getContext());
         database.open();
         int id = (int) adapter.getItemId(position);
-        database.makePersonPay(id,mGroup.getId());
+        database.makePersonPay(id, mGroup.getId());
         mGroup.setPeople(database.getPeopleForGroup(mGroup.getId()));
         database.close();
         adapter.notifyDataSetChanged();
     }
+
+    @Override
+    public void onAddClicked() {
+        FragmentManager fm = getFragmentManager();
+        EditTextDialog alertDialog = EditTextDialog.newInstance("Add a new person", MessageFormat.format("Please enter a name to add to {0}", mGroup.getName()), this);
+        alertDialog.show(fm, "fragment_alert");
+    }
+
+    @Override
+    public void onFinishEditDialog(String inputText) {
+        PeopleDatabase db = new PeopleDatabase(getContext());
+        db.open();
+        db.addPersonToGroup(mGroup.getId(), inputText);
+        mGroup.setPeople(db.getPeopleForGroup(mGroup.getId()));
+        db.close();
+        adapter.notifyDataSetChanged();
+    }
+
 }

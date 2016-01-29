@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.timsiggins.whoseturn.data.Group;
 import com.timsiggins.whoseturn.data.Person;
 
 import java.util.ArrayList;
@@ -17,12 +16,12 @@ import java.util.List;
  */
 public class PeopleDatabase  {
 
-    private static final String TBLNAME = "people";
-    private static final String COL_ID = "_id";
-    private static final String COL_NAME = "name";
-    private static final String COL_LAST = "last";
-    private static final String COL_GRP = "group_id";
-    private static final String COL_AHEAD = "ahead";
+    static final String TBLNAME = "people";
+    static final String COL_ID = "_id";
+    static final String COL_NAME = "name";
+    static final String COL_LAST = "last";
+    static final String COL_GRP = "group_id";
+    static final String COL_AHEAD = "ahead";
 
     private static final String[] ALL_COLS = {COL_ID, COL_GRP, COL_NAME, COL_LAST, COL_AHEAD};
 

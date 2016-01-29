@@ -71,18 +71,20 @@ public class GroupsAdapter extends BaseAdapter {
         // Bind the data efficiently with the holder.
         final Group group = groups.get(position);
         holder.title.setText(group.getName());
-        if (group.size() == 0) {
-            holder.subtitle.setText(R.string.group_size0);
-        } else if (group.size() == 1){
-            holder.subtitle.setText(group.getPerson(0).getName());
-        } else if (group.size() == 2){
-            final String name = group.getPerson(0).getName();
-            final String name1 = group.getPerson(1).getName();
-            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.group_size2), name, name1));
-        } else if (group.size() == 3){
-            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.groups_size3), group.getPerson(0).getName(), group.getPerson(1).getName()));
-        } else if (group.size() > 3){
-            holder.subtitle.setText(MessageFormat.format(context.getString(R.string.groups_sizelarge), group.getPerson(0).getName(), group.getPerson(1).getName(), group.size() - 2));
+        if (holder.subtitle != null) {
+            if (group.size() == 0) {
+                holder.subtitle.setText(R.string.group_size0);
+            } else if (group.size() == 1) {
+                holder.subtitle.setText(group.getPerson(0).getName());
+            } else if (group.size() == 2) {
+                final String name = group.getPerson(0).getName();
+                final String name1 = group.getPerson(1).getName();
+                holder.subtitle.setText(MessageFormat.format(context.getString(R.string.group_size2), name, name1));
+            } else if (group.size() == 3) {
+                holder.subtitle.setText(MessageFormat.format(context.getString(R.string.groups_size3), group.getPerson(0).getName(), group.getPerson(1).getName()));
+            } else if (group.size() > 3) {
+                holder.subtitle.setText(MessageFormat.format(context.getString(R.string.groups_sizelarge), group.getPerson(0).getName(), group.getPerson(1).getName(), group.size() - 2));
+            }
         }
         return convertView;
     }

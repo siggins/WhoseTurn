@@ -8,23 +8,23 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 // ...
 
 public class EditTextDialog extends DialogFragment implements TextView.OnEditorActionListener {
 
+    private EditTextDialogListener listener;
     private EditText mEditText;
+
+    public void setListener(EditTextDialogListener listener) {
+        this.listener = listener;
+    }
 
     public interface EditTextDialogListener {
         void onFinishEditDialog(String inputText);
@@ -33,11 +33,12 @@ public class EditTextDialog extends DialogFragment implements TextView.OnEditorA
     public EditTextDialog() {
     }
 
-    public static EditTextDialog newInstance(String title, String message) {
+    public static EditTextDialog newInstance(String title, String message, EditTextDialogListener listener) {
         EditTextDialog frag = new EditTextDialog();
+        frag.setListener(listener);
         Bundle args = new Bundle();
         args.putString("title", title);
-        args.putString("message",message);
+        args.putString("message", message);
         frag.setArguments(args);
         return frag;
     }
@@ -78,7 +79,6 @@ public class EditTextDialog extends DialogFragment implements TextView.OnEditorA
 
     private void done() {
         // Return input text to activity
-        EditTextDialogListener listener = (EditTextDialogListener) getActivity();
         listener.onFinishEditDialog(mEditText.getText().toString());
         dismiss();
     }

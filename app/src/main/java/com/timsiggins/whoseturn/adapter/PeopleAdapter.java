@@ -18,13 +18,19 @@ import java.util.List;
 /**
  * Created by tim on 11/3/15.
  */
-public class PeopleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements View.OnClickListener {
+public class PeopleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private final LayoutInflater mInflater;
     private final Context context;
+    private static final String tag = "PeopleAdapter";
+    private PeopleAdapterListener listener;
+    private final int VIEW_NORMAL = 1;
+    private final int VIEW_ADD = 2;
     private List<Person> people;
+    private View.OnClickListener addListener;
 
-    public PeopleAdapter(Context context, List<Person> people) {
+    public PeopleAdapter(Context context, List<Person> people, PeopleAdapterListener listener) {
         this.context = context;
+        this.listener = listener;
         mInflater = LayoutInflater.from(this.context);
         this.people = people;
     }
@@ -33,7 +39,7 @@ public class PeopleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public int getItemViewType(int position) {
         // last item is always the add item
-        return position < people.size() ? 1 : 2;
+        return position < people.size() ? VIEW_NORMAL : VIEW_ADD;
     }
 
 
@@ -41,13 +47,13 @@ public class PeopleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // create a new view
         RecyclerView.ViewHolder vh = null;
-        if (viewType == 1) {
+        if (viewType == VIEW_NORMAL) {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.person_list_item, parent, false);
             // set the view's size, margins, paddings and layout parameters
             vh = new ViewHolderPerson(v);
 
-        } else if (viewType == 2) {
+        } else if (viewType == VIEW_ADD) {
             View v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.add_new_item, parent, false);
             Log.d("tag", "item view is " + v);
@@ -59,19 +65,32 @@ public class PeopleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     }
 
     @Override
-    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         if (position < people.size()) {
             Person person = people.get(position);
             if (person != null && holder instanceof ViewHolderPerson) {
+                Log.d(tag,"setting up holder");
                 ViewHolderPerson pHolder = (ViewHolderPerson) holder;
                 pHolder.title.setText(person.getName());
                 pHolder.subtitle.setText(MessageFormat.format(context.getString(R.string.last_paid), person.getLastPaid()));
-                pHolder.btnPay.setOnClickListener(this);
+                pHolder.btnPay.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        Log.d(tag,"pay clicked");
+                        listener.onPayClicked(holder.getAdapterPosition());
+                    }
+                });
             }
         } else if (holder instanceof ViewHolderAdd) {
             ViewHolderAdd aHolder = (ViewHolderAdd) holder;
-            aHolder.title.setOnClickListener(this);
-            //todo - add stuffs
+            addListener = new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Log.d(tag, "add clicked");
+                    listener.onAddClicked();
+                }
+            };
+            aHolder.title.setOnClickListener(addListener);
         }
     }
 
@@ -90,12 +109,6 @@ public class PeopleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     public int getItemCount() {
         return people.size() + 1;
     }
-
-    @Override
-    public void onClick(View view) {
-
-    }
-
 
     public static class ViewHolderPerson extends RecyclerView.ViewHolder {
         TextView title;
@@ -118,12 +131,12 @@ public class PeopleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         public ViewHolderAdd(View itemView) {
             super(itemView);
 
-            title = (TextView) itemView.findViewById(R.id.title);
+            title = (TextView) itemView.findViewById(R.id.add);
         }
     }
 
-    public interface PeopleAdapterCallback {
-        void onPayClicked();
+    public interface PeopleAdapterListener {
+        void onPayClicked(int position);
         void onAddClicked();
     }
 }

@@ -71,14 +71,12 @@ public class GroupListFragment extends ListFragment {
     public GroupListFragment() {
     }
 
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        GroupsDatabase groups = new GroupsDatabase(getActivity());
-        groups.open();
-        allGroups = groups.getAllGroups(true);
-        groups.close();
-        setListAdapter(new GroupsAdapter(getActivity(), allGroups));
+
     }
 
     @Override
@@ -90,6 +88,11 @@ public class GroupListFragment extends ListFragment {
                 && savedInstanceState.containsKey(STATE_ACTIVATED_POSITION)) {
             setActivatedPosition(savedInstanceState.getInt(STATE_ACTIVATED_POSITION));
         }
+        GroupsDatabase groups = new GroupsDatabase(getActivity());
+        groups.open();
+        allGroups = groups.getAllGroups(true);
+        groups.close();
+        setListAdapter(new GroupsAdapter(getActivity(), allGroups));
     }
 
     @Override

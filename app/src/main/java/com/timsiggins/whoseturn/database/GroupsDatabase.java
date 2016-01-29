@@ -11,17 +11,18 @@ import com.timsiggins.whoseturn.data.Group;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Observable;
 
 /**
  * Created by tim on 10/31/15.
  */
-public class GroupsDatabase {
+public class GroupsDatabase extends Observable{
 
     static final String TBLNAME = "groups";
     static final String COL_ID = "_id";
-    private static final String COL_NAME = "name";
-    private static final String COL_LAST = "last";
-    private static final String COL_PIC = "picture";
+    static final String COL_NAME = "name";
+    static final String COL_LAST = "last";
+    static final String COL_PIC = "picture";
     private static final String[] ALL_COLS = {COL_ID, COL_NAME, COL_LAST, COL_PIC};
     private Context context;
 
@@ -102,5 +103,11 @@ public class GroupsDatabase {
         final ContentValues contentValues = new ContentValues();
         contentValues.put(COL_PIC, filename);
         database.update(TBLNAME,contentValues,COL_ID+" = ?",new String[]{""+id});
+    }
+
+    public void deleteGroup(int id) {
+        String[] whereArgs = {id + ""};
+        database.delete(PeopleDatabase.TBLNAME,PeopleDatabase.COL_GRP+"=?", whereArgs);
+        database.delete(TBLNAME,COL_ID+"=?", whereArgs);
     }
 }

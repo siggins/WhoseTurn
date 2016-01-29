@@ -5,7 +5,7 @@
     android:orientation="vertical">
 
     <TextView
-        android:id="@+id/title"
+        android:id="@+id/add"
         style="@style/AppTheme.ListItemFull"
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
